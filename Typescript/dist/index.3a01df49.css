@@ -1,0 +1,74 @@
+:root {
+  --background-color: #ccc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#calculator {
+  background-color: #282828;
+  border-radius: 10px;
+  width: 300px;
+  height: 485px;
+  margin: 0 auto 2vh;
+  padding: 1.5rem;
+}
+
+#screen {
+  text-align: right;
+  color: #fff;
+  background-color: #857d7d;
+  border-radius: 5px;
+  width: 100%;
+  margin: 20px auto 50px;
+  padding: 1rem;
+  font-size: 1.8rem;
+}
+
+#screen #user-input {
+  color: #adff2f;
+  font-size: 1.5rem;
+}
+
+#screen #result {
+  color: #fff;
+  font-size: 1.5rem;
+}
+
+#keypads .row {
+  justify-content: space-between;
+  margin-bottom: 1vh;
+  display: flex;
+}
+
+#keypads button {
+  background-color: #faebd7;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+}
+
+#keypads button:hover {
+  background-color: bisque;
+}
+
+#keypads button:hover:active {
+  background-color: #deb887;
+  transform: translateY(4px);
+  box-shadow: 0 5px #666;
+}
+
+#keypads button[name="equal"] {
+  border-radius: 25px;
+  width: 120px;
+}
+
+header, footer {
+  text-align: center;
+  width: 100%;
+  padding: 1rem;
+}
+
+/*# sourceMappingURL=index.3a01df49.css.map */
