@@ -582,160 +582,34 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 var _calculator = require("./Calculator");
 "use strict";
 window.onload = ()=>{
-    const numButtonList = document.querySelectorAll("#keypads button.number");
-    const signList = document.querySelectorAll("#keypads button.sign");
-    const allClear = document.querySelector("#keypads #all-clear");
-    const clear = document.querySelector("#keypads button[name='clear']");
-    const dotButton = document.querySelector("#keypads .dot");
-    const equal = document.querySelector("#keypads .equal");
-    let screen = document.querySelector("#screen");
-    if (screen !== null) {
-        const calculator = new (0, _calculator.Calculator)(screen, numButtonList, signList, dotButton, allClear, clear, equal);
-    }
-}; // function initializeEvents() {
- //   // Initialize Number Button Event Listener
- //   const numButtonList = document.querySelectorAll("#keypads button.number");
- //   numButtonList.forEach((button) =>
- //     button.addEventListener("click", setNumber)
- //   );
- //   // Initialize All-Clear Display Event Listener
- //   const allClear = document.querySelector("#keypads #all-clear");
- //   allClear.addEventListener("click", allClearDisplay);
- //   // Initialize Clear Display Event Handler
- //   const clear = document.querySelector("#keypads button[name='clear']");
- //   clear.addEventListener("click", clearDisplay);
- //   // Initialize all signs
- //   const signList = document.querySelectorAll("#keypads .sign");
- //   signList.forEach((sign) => sign.addEventListener("click", setSigns));
- //   // Initialize Dot
- //   const dotButton = document.querySelector("#keypads .dot");
- //   dotButton.addEventListener("click", setDot);
- //   // Calculate
- //   const equal = document.querySelector("#keypads .equal");
- //   equal.addEventListener("click", calculate);
- // }
+    const calculator = new (0, _calculator.Calculator)(document.querySelector("#screen"), document.querySelectorAll("#keypads button.number"), document.querySelectorAll("#keypads button.sign"), document.querySelector("#keypads .dot"), document.querySelector("#keypads #all-clear"), document.querySelector("#keypads button[name='clear']"), document.querySelector("#keypads .equal"));
+};
 
 },{"./Calculator":"5EhwK"}],"5EhwK":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Calculator", ()=>Calculator);
+var _display = require("./Display");
+var _ram = require("./Ram");
+var _button = require("./Button");
 "use strict";
 class Calculator {
-    constructor(screen, numButtonList, operandList, dotBtn, allClearBtn, clearBtn, eqlBtn){
-        this.screen = screen;
-        this.numButtonList = numButtonList;
-        this.operandList = operandList;
-        this.dotBtn = dotBtn;
-        this.allClearBtn = allClearBtn;
-        this.clearBtn = clearBtn;
-        this.eqlBtn = eqlBtn;
-        this.operandList = operandList;
-        this.initialize();
-    }
-    // Assign all
-    initialize() {
-        this.allClearDisplay();
-        // Set Number Button Event Lisenters
-        this.numButtonList.forEach((number)=>number.addEventListener("click", ()=>this.setNumber(number)));
-        // Set Operand Button Event Lisenters
-        this.operandList.forEach((operand)=>operand.addEventListener("click", ()=>this.setOperand(operand)));
-        // Set Dot
-        this.dotBtn.addEventListener("click", ()=>this.setDot());
-        // Set All Clear
-        this.allClearBtn.addEventListener("click", ()=>this.allClearDisplay());
-        // Set Clear
-        this.clearBtn.addEventListener("click", ()=>this.clearDisplay());
-        // Set Equal
-        this.eqlBtn.addEventListener("click", ()=>this.calculate());
-    }
-    calculate() {
-        // Get list of items to process from calStorage
-        let itemList = this.calStorage.split(" ");
-        // Do Calculations
-        let number = 0;
-        let sign = "";
-        for(let i in itemList){
-            let isNumber = /[0-9.]+/.test(itemList[i]);
-            if (isNumber && sign === "") number = Number(itemList[i]);
-            else if (!isNumber) sign = itemList[i];
-            else number = this.getCalculation(number, Number(itemList[i]), sign);
-        }
-        // Round Up Number
-        number = Math.round(number * 100) / 100;
-        if (number.toString().length > 12) this.calStorage = "Err: Num Too Big";
-        // Clear Calculator Store
-        this.calStorage = `${number}`;
-        this.updateDisplay();
-    }
-    getCalculation(num1, num2, sign) {
-        switch(sign){
-            case "+":
-                return num1 + num2;
-            case "-":
-                return num1 - num2;
-            case "*":
-                return num1 * num2;
-            case "/":
-                return num1 / num2;
-            case "%":
-                return num1 % num2;
-        }
-    }
-    setNumber(number) {
-        // If string is empty, simply add number to string
-        if (this.calStorage.length === 0) this.calStorage += number.name;
-        else {
-            let lastIdx = this.calStorage.length - 1;
-            let isNumber = /[0-9.]+/.test(this.calStorage[lastIdx]);
-            if (isNumber) this.calStorage += number.name;
-            else this.calStorage += ` ${number.name}`;
-        }
-        this.updateDisplay();
-    }
-    setOperand(operand) {
-        // Do nothing if there is no value
-        if (this.calStorage.length === 0) return;
-        // Check and see if last value is a number
-        let lastIdx = this.calStorage.length - 1;
-        let isNumber = /[0-9.]+/.test(this.calStorage[lastIdx]);
-        if (isNumber) this.calStorage += ` ${operand.name}`;
-        else this.calStorage = this.calStorage.slice(0, lastIdx) + operand.name;
-        this.updateDisplay();
-    }
-    setDot() {
-        // Do nothing if there is no initial number.
-        if (this.calStorage.length === 0) return;
-        // Check and see if last value is a number
-        let itemList = this.calStorage.split(" ");
-        let lastIdx = itemList.length - 1;
-        let isDotlessNumber = /^[0-9]+$/.test(itemList[lastIdx]);
-        // Add dot if existing number does not have preexisting dot
-        if (isDotlessNumber) this.calStorage = this.calStorage + ".";
-        this.updateDisplay();
-    }
-    updateDisplay(text = this.calStorage) {
-        this.screen.textContent = text;
-    }
-    allClearDisplay() {
-        this.calStorage = "";
-        this.screen.textContent = "0";
-    }
-    clearDisplay() {
-        if (this.calStorage.length === 0) this.updateDisplay("0");
-        else {
-            let lastIdx = this.calStorage.length - 1;
-            let isNumber = /[0-9.]+/.test(this.calStorage[lastIdx]);
-            // Slice to last index when number, if sign then slice one more
-            if (isNumber) this.calStorage = this.calStorage.slice(0, lastIdx);
-            else this.calStorage = this.calStorage.slice(0, lastIdx - 1);
-            // Add a default 0 to display if calStorage is now empty
-            if (this.calStorage.length === 0) this.updateDisplay("0");
-            else this.updateDisplay();
-        }
+    constructor(screen, numButtonList, operandList, dotBtn, allClearBtn, clearBtn, equalBtn){
+        this.ram = new (0, _ram.Ram)();
+        this.display = new (0, _display.Display)(screen, this.ram);
+        // Initialize Number
+        numButtonList.forEach((button)=>new (0, _button.NumberBtn)(button, this.ram, this.display));
+        // Initialize Operand
+        operandList.forEach((button)=>new (0, _button.OperandBtn)(button, this.ram, this.display));
+        // Initialize Remaining Buttons
+        new (0, _button.DotBtn)(dotBtn, this.ram, this.display);
+        new (0, _button.AllClearBtn)(allClearBtn, this.ram, this.display);
+        new (0, _button.ClearBtn)(clearBtn, this.ram, this.display);
+        new (0, _button.EqualBtn)(equalBtn, this.ram, this.display);
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}],"6SyWO":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO","./Display":"jd82i","./Button":"5X7GA","./Ram":"37xb7"}],"6SyWO":[function(require,module,exports) {
 exports.interopDefault = function(a) {
     return a && a.__esModule ? a : {
         default: a
@@ -765,6 +639,159 @@ exports.export = function(dest, destName, get) {
     });
 };
 
-},{}]},["ltrnT","h7u1C"], "h7u1C", "parcelRequire94c2")
+},{}],"jd82i":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Display", ()=>Display);
+class Display {
+    constructor(screen, ram){
+        this.screen = screen;
+        this.ram = ram;
+        this.setDisplay("0");
+    }
+    setDisplay(text) {
+        this.screen.textContent = text;
+    }
+    refresh() {
+        this.screen.textContent = this.ram.getData();
+    }
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}],"5X7GA":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "NumberBtn", ()=>NumberBtn);
+parcelHelpers.export(exports, "OperandBtn", ()=>OperandBtn);
+parcelHelpers.export(exports, "DotBtn", ()=>DotBtn);
+parcelHelpers.export(exports, "AllClearBtn", ()=>AllClearBtn);
+parcelHelpers.export(exports, "ClearBtn", ()=>ClearBtn);
+parcelHelpers.export(exports, "EqualBtn", ()=>EqualBtn);
+class Button {
+    constructor(button, ram, display){
+        this.button = button;
+        this.ram = ram;
+        this.display = display;
+        this.button.addEventListener("click", ()=>this.push());
+    }
+    push() {}
+}
+class NumberBtn extends Button {
+    push() {
+        let cache = this.ram.getData();
+        // If string is empty, simply add number to string
+        if (cache.length === 0) this.ram.setData(this.button.name);
+        else {
+            let lastIdx = cache.length - 1;
+            let isNumber = /[0-9.]+/.test(cache[lastIdx]);
+            cache += isNumber ? this.button.name : ` ${this.button.name}`; // Add a space if last character is an operand
+            this.ram.setData(cache);
+        }
+        this.display.refresh();
+    }
+}
+class OperandBtn extends Button {
+    push() {
+        let cache = this.ram.getData();
+        // Do nothing if there is no value
+        if (cache.length === 0) return;
+        // Check and see if last value is a number
+        let lastIdx = cache.length - 1;
+        let isNumber = /[0-9.]+/.test(cache[lastIdx]);
+        if (isNumber) cache += ` ${this.button.name}`;
+        else cache = cache.slice(0, lastIdx) + this.button.name;
+        this.ram.setData(cache);
+        this.display.refresh();
+    }
+}
+class DotBtn extends Button {
+    push() {
+        let cache = this.ram.getData();
+        // Do nothing if there is no initial number.
+        if (cache.length === 0) return;
+        // Check and see if last value is a number
+        let itemList = cache.split(" ");
+        let lastIdx = itemList.length - 1;
+        let isDotlessNumber = /^[0-9]+$/.test(itemList[lastIdx]);
+        // Add dot if existing number does not have preexisting dot
+        if (isDotlessNumber) cache = cache + ".";
+        this.ram.setData(cache);
+        this.display.refresh();
+    }
+}
+class AllClearBtn extends Button {
+    push() {
+        this.ram.setData("");
+        this.display.setDisplay("0");
+    }
+}
+class ClearBtn extends Button {
+    push() {
+        let cache = this.ram.getData();
+        if (cache.length > 0) {
+            let lastIdx = cache.length - 1;
+            let isNumber = /[0-9.]+/.test(cache[lastIdx]);
+            // Slice to last index when number, if sign then slice one more
+            if (isNumber) this.ram.setData(cache.slice(0, lastIdx));
+            else this.ram.setData(cache.slice(0, lastIdx - 1));
+            // Add a default 0 to display if calStorage is now empty
+            if (this.ram.getData().length === 0) this.display.setDisplay("0");
+            else this.display.refresh();
+        }
+    }
+}
+class EqualBtn extends Button {
+    push() {
+        let cache = this.ram.getData();
+        let itemList = cache.split(" ");
+        // Do Calculations
+        let number = 0;
+        let sign = "";
+        for(let i in itemList){
+            console.log(itemList[i]);
+            let isNumber = /[0-9.]+/.test(itemList[i]);
+            if (isNumber && sign === "") number = Number(itemList[i]);
+            else if (!isNumber) sign = itemList[i];
+            else number = this.getCalculation(number, Number(itemList[i]), sign);
+        }
+        // Round Up Number
+        number = Math.round(number * 100) / 100;
+        if (number.toString().length > 12) this.ram.setData("Err: Num Too Big");
+        // Clear Calculator Store
+        this.ram.setData(`${number}`);
+        this.display.refresh();
+    }
+    getCalculation(num1, num2, sign) {
+        switch(sign){
+            case "+":
+                return num1 + num2;
+            case "-":
+                return num1 - num2;
+            case "*":
+                return num1 * num2;
+            case "/":
+                return num1 / num2;
+            default:
+                return num1 % num2;
+        }
+    }
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}],"37xb7":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Ram", ()=>Ram);
+class Ram {
+    constructor(){
+        this.storage = "";
+    }
+    getData() {
+        return this.storage;
+    }
+    setData(text) {
+        this.storage = text;
+    }
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}]},["ltrnT","h7u1C"], "h7u1C", "parcelRequire94c2")
 
 //# sourceMappingURL=index.b71e74eb.js.map
