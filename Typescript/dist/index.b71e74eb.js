@@ -591,7 +591,7 @@ parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Calculator", ()=>Calculator);
 var _display = require("./Display");
 var _ram = require("./Ram");
-var _button = require("./Button");
+var _button = require("./button");
 "use strict";
 class Calculator {
     constructor(screen, numButtonList, operandList, dotBtn, allClearBtn, clearBtn, equalBtn){
@@ -609,7 +609,25 @@ class Calculator {
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO","./Display":"jd82i","./Button":"5X7GA","./Ram":"37xb7"}],"6SyWO":[function(require,module,exports) {
+},{"./Display":"jd82i","./Ram":"37xb7","./button":"8vF2p","@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}],"jd82i":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Display", ()=>Display);
+class Display {
+    constructor(screen, ram){
+        this.screen = screen;
+        this.ram = ram;
+        this.setDisplay("0");
+    }
+    setDisplay(text) {
+        this.screen.textContent = text;
+    }
+    refresh() {
+        this.screen.textContent = this.ram.getData();
+    }
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}],"6SyWO":[function(require,module,exports) {
 exports.interopDefault = function(a) {
     return a && a.__esModule ? a : {
         default: a
@@ -639,144 +657,7 @@ exports.export = function(dest, destName, get) {
     });
 };
 
-},{}],"jd82i":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "Display", ()=>Display);
-class Display {
-    constructor(screen, ram){
-        this.screen = screen;
-        this.ram = ram;
-        this.setDisplay("0");
-    }
-    setDisplay(text) {
-        this.screen.textContent = text;
-    }
-    refresh() {
-        this.screen.textContent = this.ram.getData();
-    }
-}
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}],"5X7GA":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "NumberBtn", ()=>NumberBtn);
-parcelHelpers.export(exports, "OperandBtn", ()=>OperandBtn);
-parcelHelpers.export(exports, "DotBtn", ()=>DotBtn);
-parcelHelpers.export(exports, "AllClearBtn", ()=>AllClearBtn);
-parcelHelpers.export(exports, "ClearBtn", ()=>ClearBtn);
-parcelHelpers.export(exports, "EqualBtn", ()=>EqualBtn);
-class Button {
-    constructor(button, ram, display){
-        this.button = button;
-        this.ram = ram;
-        this.display = display;
-        this.button.addEventListener("click", ()=>this.push());
-    }
-    push() {}
-}
-class NumberBtn extends Button {
-    push() {
-        let cache = this.ram.getData();
-        // If string is empty, simply add number to string
-        if (cache.length === 0) this.ram.setData(this.button.name);
-        else {
-            let lastIdx = cache.length - 1;
-            let isNumber = /[0-9.]+/.test(cache[lastIdx]);
-            cache += isNumber ? this.button.name : ` ${this.button.name}`; // Add a space if last character is an operand
-            this.ram.setData(cache);
-        }
-        this.display.refresh();
-    }
-}
-class OperandBtn extends Button {
-    push() {
-        let cache = this.ram.getData();
-        // Do nothing if there is no value
-        if (cache.length === 0) return;
-        // Check and see if last value is a number
-        let lastIdx = cache.length - 1;
-        let isNumber = /[0-9.]+/.test(cache[lastIdx]);
-        if (isNumber) cache += ` ${this.button.name}`;
-        else cache = cache.slice(0, lastIdx) + this.button.name;
-        this.ram.setData(cache);
-        this.display.refresh();
-    }
-}
-class DotBtn extends Button {
-    push() {
-        let cache = this.ram.getData();
-        // Do nothing if there is no initial number.
-        if (cache.length === 0) return;
-        // Check and see if last value is a number
-        let itemList = cache.split(" ");
-        let lastIdx = itemList.length - 1;
-        let isDotlessNumber = /^[0-9]+$/.test(itemList[lastIdx]);
-        // Add dot if existing number does not have preexisting dot
-        if (isDotlessNumber) cache = cache + ".";
-        this.ram.setData(cache);
-        this.display.refresh();
-    }
-}
-class AllClearBtn extends Button {
-    push() {
-        this.ram.setData("");
-        this.display.setDisplay("0");
-    }
-}
-class ClearBtn extends Button {
-    push() {
-        let cache = this.ram.getData();
-        if (cache.length > 0) {
-            let lastIdx = cache.length - 1;
-            let isNumber = /[0-9.]+/.test(cache[lastIdx]);
-            // Slice to last index when number, if sign then slice one more
-            if (isNumber) this.ram.setData(cache.slice(0, lastIdx));
-            else this.ram.setData(cache.slice(0, lastIdx - 1));
-            // Add a default 0 to display if calStorage is now empty
-            if (this.ram.getData().length === 0) this.display.setDisplay("0");
-            else this.display.refresh();
-        }
-    }
-}
-class EqualBtn extends Button {
-    push() {
-        let cache = this.ram.getData();
-        let itemList = cache.split(" ");
-        // Do Calculations
-        let number = 0;
-        let sign = "";
-        for(let i in itemList){
-            console.log(itemList[i]);
-            let isNumber = /[0-9.]+/.test(itemList[i]);
-            if (isNumber && sign === "") number = Number(itemList[i]);
-            else if (!isNumber) sign = itemList[i];
-            else number = this.getCalculation(number, Number(itemList[i]), sign);
-        }
-        // Round Up Number
-        number = Math.round(number * 100) / 100;
-        if (number.toString().length > 12) this.ram.setData("Err: Num Too Big");
-        // Clear Calculator Store
-        this.ram.setData(`${number}`);
-        this.display.refresh();
-    }
-    getCalculation(num1, num2, sign) {
-        switch(sign){
-            case "+":
-                return num1 + num2;
-            case "-":
-                return num1 - num2;
-            case "*":
-                return num1 * num2;
-            case "/":
-                return num1 / num2;
-            default:
-                return num1 % num2;
-        }
-    }
-}
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}],"37xb7":[function(require,module,exports) {
+},{}],"37xb7":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Ram", ()=>Ram);
@@ -792,6 +673,175 @@ class Ram {
     }
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}]},["ltrnT","h7u1C"], "h7u1C", "parcelRequire94c2")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}],"8vF2p":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "AllClearBtn", ()=>(0, _allClearBtn.AllClearBtn));
+parcelHelpers.export(exports, "ClearBtn", ()=>(0, _clearBtn.ClearBtn));
+parcelHelpers.export(exports, "DotBtn", ()=>(0, _dotBtn.DotBtn));
+parcelHelpers.export(exports, "EqualBtn", ()=>(0, _equalBtn.EqualBtn));
+parcelHelpers.export(exports, "NumberBtn", ()=>(0, _numberBtn.NumberBtn));
+parcelHelpers.export(exports, "OperandBtn", ()=>(0, _operandBtn.OperandBtn));
+var _allClearBtn = require("./AllClearBtn");
+var _clearBtn = require("./ClearBtn");
+var _dotBtn = require("./DotBtn");
+var _equalBtn = require("./EqualBtn");
+var _numberBtn = require("./NumberBtn");
+var _operandBtn = require("./OperandBtn");
+
+},{"./AllClearBtn":"3Rh5s","./ClearBtn":"fAUiL","./DotBtn":"hpzPH","./EqualBtn":"38x4D","./NumberBtn":"3a6oO","./OperandBtn":"2c4YT","@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}],"3Rh5s":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "AllClearBtn", ()=>AllClearBtn);
+var _button = require("./Button");
+class AllClearBtn extends (0, _button.Button) {
+    push() {
+        this.ram.setData("");
+        this.display.setDisplay("0");
+    }
+}
+
+},{"./Button":"epo0Q","@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}],"epo0Q":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Button", ()=>Button);
+class Button {
+    constructor(button, ram, display){
+        this.button = button;
+        this.ram = ram;
+        this.display = display;
+        this.button.addEventListener("click", ()=>this.push());
+    }
+    push() {}
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}],"fAUiL":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "ClearBtn", ()=>ClearBtn);
+var _button = require("./Button");
+class ClearBtn extends (0, _button.Button) {
+    push() {
+        let cache = this.ram.getData();
+        if (cache.length > 0) {
+            let lastIdx = cache.length - 1;
+            let isNumber = /[0-9.]+/.test(cache[lastIdx]);
+            // Slice to last index when number, if sign then slice one more
+            if (isNumber) this.ram.setData(cache.slice(0, lastIdx));
+            else this.ram.setData(cache.slice(0, lastIdx - 1));
+            // Add a default 0 to display if calStorage is now empty
+            if (this.ram.getData().length === 0) this.display.setDisplay("0");
+            else this.display.refresh();
+        }
+    }
+}
+
+},{"./Button":"epo0Q","@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}],"hpzPH":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "DotBtn", ()=>DotBtn);
+var _button = require("./Button");
+class DotBtn extends (0, _button.Button) {
+    push() {
+        let cache = this.ram.getData();
+        // Do nothing if there is no initial number.
+        if (cache.length === 0) return;
+        // Check and see if last value is a number
+        let itemList = cache.split(" ");
+        let lastIdx = itemList.length - 1;
+        let isDotlessNumber = /^[0-9]+$/.test(itemList[lastIdx]);
+        // Add dot if existing number does not have preexisting dot
+        if (isDotlessNumber) cache = cache + ".";
+        this.ram.setData(cache);
+        this.display.refresh();
+    }
+}
+
+},{"./Button":"epo0Q","@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}],"38x4D":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "EqualBtn", ()=>EqualBtn);
+var _button = require("./Button");
+class EqualBtn extends (0, _button.Button) {
+    push() {
+        let cache = this.ram.getData();
+        let itemList = cache.split(" ");
+        // Do Calculations
+        let number = 0;
+        let sign = "";
+        for(let i in itemList){
+            console.log(itemList[i]);
+            let isNumber = /[0-9.]+/.test(itemList[i]);
+            if (isNumber && sign === "") number = Number(itemList[i]);
+            else if (!isNumber) sign = itemList[i];
+            else number = this.calculate(number, Number(itemList[i]), sign);
+        }
+        // Round Up Number
+        number = Math.round(number * 100) / 100;
+        if (number.toString().length > 12) {
+            this.ram.setData("");
+            this.display.setDisplay("Err: Num Too Big");
+        } else {
+            this.ram.setData(`${number}`);
+            this.display.refresh();
+        }
+    }
+    calculate(num1, num2, sign) {
+        switch(sign){
+            case "+":
+                return num1 + num2;
+            case "-":
+                return num1 - num2;
+            case "*":
+                return num1 * num2;
+            case "/":
+                return num1 / num2;
+            default:
+                return num1 % num2;
+        }
+    }
+}
+
+},{"./Button":"epo0Q","@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}],"3a6oO":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "NumberBtn", ()=>NumberBtn);
+var _button = require("./Button");
+class NumberBtn extends (0, _button.Button) {
+    push() {
+        let cache = this.ram.getData();
+        // If string is empty, simply add number to string
+        if (cache.length === 0) this.ram.setData(this.button.name);
+        else {
+            let lastIdx = cache.length - 1;
+            let isNumber = /[0-9.]+/.test(cache[lastIdx]);
+            cache += isNumber ? this.button.name : ` ${this.button.name}`; // Add a space if last character is an operand
+            this.ram.setData(cache);
+        }
+        this.display.refresh();
+    }
+}
+
+},{"./Button":"epo0Q","@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}],"2c4YT":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "OperandBtn", ()=>OperandBtn);
+var _button = require("./Button");
+class OperandBtn extends (0, _button.Button) {
+    push() {
+        let cache = this.ram.getData();
+        // Do nothing if there is no value
+        if (cache.length === 0) return;
+        // Check and see if last value is a number
+        let lastIdx = cache.length - 1;
+        let isNumber = /[0-9.]+/.test(cache[lastIdx]);
+        if (isNumber) cache += ` ${this.button.name}`;
+        else cache = cache.slice(0, lastIdx) + this.button.name;
+        this.ram.setData(cache);
+        this.display.refresh();
+    }
+}
+
+},{"./Button":"epo0Q","@parcel/transformer-js/src/esmodule-helpers.js":"6SyWO"}]},["ltrnT","h7u1C"], "h7u1C", "parcelRequire94c2")
 
 //# sourceMappingURL=index.b71e74eb.js.map

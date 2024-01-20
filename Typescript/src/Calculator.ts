@@ -8,7 +8,7 @@ import {
   AllClearBtn,
   ClearBtn,
   EqualBtn,
-} from "./Button";
+} from "./button";
 
 export class Calculator {
   ram: Ram;
